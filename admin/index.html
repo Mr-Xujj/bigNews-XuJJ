@@ -54,5 +54,37 @@
 
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function () {
+            //二、获取用户信息，渲染到页面
+            $.ajax({
+                type: 'get',
+                url: BigNew.user_info,
+                //设置请求头
+                headers: {
+                    Authorization: window.localStorage.getItem('token')
+                    //需要授权的 API ，必须在请求头中使用 `Authorization` 字段提供 `token` 令牌
+                },
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        $('.user_info>img').attr('src', backData.data.userPic);
+                        $('.user_info>span>i').text(backData.data.nickname);
+                        $('.user_center_link>img').attr('src', backData.data.userPic)
+                    }
+
+                }
+            });
+            // 点击退出
+            $('.logout').on('click', function () {
+                window.localStorage.removeItem('token')
+                 window.location.href='./login.html'
+            });
+
+            
+        })
+    </script>
 </body>
+
 </html>
