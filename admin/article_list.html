@@ -117,6 +117,7 @@
             })
 
             // 封装函数
+            var myPage = 1
             function getData(myPage, callBack) {
                 //  文章列表的筛选
                 $.ajax({
@@ -132,14 +133,17 @@
                         if (backData.code == 200) {
                             var reshtml = template('art_list', backData)
                             $('tbody').html(reshtml)
-                            if (callBack != null) {
+                            if (backData.data.data.length != 0 && callBack != null) {
                                 callBack(backData)
+                                $('#pagination-demo').show()
+                            }else if(backData.data.data.length == 0){
+                                 $('#pagination-demo').hide()
                             }
                         }
                     }
                 })
             }
-              //  文章列表的筛选
+            //  文章列表的筛选
             getData(1, function (backData) {
                 // 分页插件
                 $('#pagination-demo').twbsPagination({
@@ -152,7 +156,8 @@
                     onPageClick: function (event, page) {
                         // page当前点击的页数
                         // 文章搜索 点击当前页数的文章
-                      getData(page,null)
+                        myPage = page // 重新赋值
+                        getData(page, null)
                     }
                 })
             })
@@ -164,6 +169,29 @@
                     // 重新生成总页数
                     $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1)
                 })
+            })
+
+            // 删除文章
+            $('tbody').on('click', '.delete', function () {
+                if (confirm('确定删除吗？')) {
+                    var id = $(this).attr('data-id')
+                    $.ajax({
+                        url: BigNew.article_delete,
+                        data: {
+                            id: id
+                        },
+                        type: 'post',
+                        success: function (backData) {
+                            if (backData.code == 204) {
+                                // window.location.reload()
+                                getData(myPage, function (backData) {
+                                    // 重新生成总页数
+                                    $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, myPage)
+                                })
+                            }
+                        }
+                    })
+                }
             })
 
 
