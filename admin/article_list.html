@@ -72,6 +72,88 @@
             </div>
         </div>
     </div>
+
+    <!--  文章分类模板 -->
+    <script id="art_temp" type="text/html">
+        <option value="">未分类</option>
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+
+    <!-- 文章列表模板 -->
+    <script id="art_list" type="text/html">
+       {{each data.data v}}
+       <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.category}}</td>
+            <td class="text-center">{{v.date}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html?id={{v.id}}"  class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+       {{/each}}
+    </script>
+
+    <script src="./libs/http.js"></script>
+    <script>
+    $(function(){
+
+         
+        $.ajax({
+            url: BigNew.category_list,
+            type: 'get',
+            success: function (backData) {
+                //  console.log(backData)
+                var reshtml = template('art_temp', backData)
+                $('#selCategory').html(reshtml)
+            }
+        })
+
+        // 文章搜索 显示默认的文章
+        $.ajax({
+            url:BigNew.article_query,
+            data:{
+                type:$('#selCategory').val().trim(),//文章id
+                state:$('#selStatus').val().trim(),// 文章状态
+                page:1,
+                perpage:10
+            },
+            success:function(backData){
+                // console.log(backData)
+              if(backData.code==200){
+                var reshtml = template('art_list', backData)
+                $('tbody').html(reshtml)
+              }
+            }
+        })
+
+        //  文章列表的筛选
+         $('#btnSearch').on('click',function(e){
+             e.preventDefault()
+             $.ajax({
+            url:BigNew.article_query,
+            data:{
+                type:$('#selCategory').val().trim(),//文章id
+                state:$('#selStatus').val().trim(),// 文章状态
+                page:1,
+                perpage:10
+            },
+            success:function(backData){
+                // console.log(backData)
+              if(backData.code==200){
+                var reshtml = template('art_list', backData)
+                $('tbody').html(reshtml)
+              }
+            }
+          })
+         })
+
+    })
+    </script>
 </body>
 
 </html>
