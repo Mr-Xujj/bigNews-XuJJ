@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="./css/iconfont.css">
     <link rel="stylesheet" href="./css/main.css">
     <script src="./libs/jquery-1.12.4.min.js"></script>
+    <script src="./libs/jquery.twbsPagination.js"></script>
+    <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
 </head>
@@ -69,6 +71,8 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <!-- 分页 Pagination插件 -->
+                <ul id="pagination-demo" class="pagination-sm"></ul>
             </div>
         </div>
     </div>
@@ -100,59 +104,146 @@
 
     <script src="./libs/http.js"></script>
     <script>
-    $(function(){
+        $(function () {
+            //   获取所有文章类别
+            $.ajax({
+                url: BigNew.category_list,
+                type: 'get',
+                success: function (backData) {
+                    //  console.log(backData)
+                    var reshtml = template('art_temp', backData)
+                    $('#selCategory').html(reshtml)
+                }
+            })
 
-         
-        $.ajax({
-            url: BigNew.category_list,
-            type: 'get',
-            success: function (backData) {
-                //  console.log(backData)
-                var reshtml = template('art_temp', backData)
-                $('#selCategory').html(reshtml)
+            // 封装函数
+            function getData(myPage, callBack) {
+                //  文章列表的筛选
+                $.ajax({
+                    url: BigNew.article_query,
+                    data: {
+                        type: $('#selCategory').val().trim(),//文章id
+                        state: $('#selStatus').val().trim(),// 文章状态
+                        page: myPage,
+                        perpage: 8
+                    },
+                    success: function (backData) {
+                        // console.log(backData)
+                        if (backData.code == 200) {
+                            var reshtml = template('art_list', backData)
+                            $('tbody').html(reshtml)
+                            if (callBack != null) {
+                                callBack(backData)
+                            }
+                        }
+                    }
+                })
             }
+              //  文章列表的筛选
+            getData(1, function (backData) {
+                // 分页插件
+                $('#pagination-demo').twbsPagination({
+                    totalPages: backData.data.totalPage,//总页数
+                    visiblePages: 7,
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '尾页',
+                    onPageClick: function (event, page) {
+                        // page当前点击的页数
+                        // 文章搜索 点击当前页数的文章
+                      getData(page,null)
+                    }
+                })
+            })
+
+            //  文章列表的筛选
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault()
+                getData(1, function (backData) {
+                    // 重新生成总页数
+                    $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1)
+                })
+            })
+
+
+
+            // ---------------------------------------------------------------------------------------------------
+            //     // 文章搜索 显示默认的文章
+            //     $.ajax({
+            //         url: BigNew.article_query,
+            //         data: {
+            //             type: $('#selCategory').val().trim(),//文章id
+            //             state: $('#selStatus').val().trim(),// 文章状态
+            //             page: 1,
+            //             perpage: 8
+            //         },
+            //         success: function (backData) {
+            //             // console.log(backData)
+            //             if (backData.code == 200) {
+            //                 var reshtml = template('art_list', backData)
+            //                 $('tbody').html(reshtml)
+
+            //                 // 分页插件
+            //                 $('#pagination-demo').twbsPagination({
+            //                     totalPages: backData.data.totalPage,//总页数
+            //                     visiblePages: 7,
+            //                     first: '首页',
+            //                     prev: '上一页',
+            //                     next: '下一页',
+            //                     last: '尾页',
+            //                     onPageClick: function (event, page) {
+            //                         // $('#page-content').text('Page ' + page);
+            //                         // page当前点击的页数
+
+            //                         // 文章搜索 点击当前页数的文章
+            //                         $.ajax({
+            //                             url: BigNew.article_query,
+            //                             data: {
+            //                                 type: $('#selCategory').val().trim(),//文章id
+            //                                 state: $('#selStatus').val().trim(),// 文章状态
+            //                                 page: page,//点击当前页数
+            //                                 perpage: 8
+            //                             },
+            //                             success: function (backData) {
+            //                                 // console.log(backData)
+            //                                 if (backData.code == 200) {
+            //                                     var reshtml = template('art_list', backData)
+            //                                     $('tbody').html(reshtml)
+            //                                 }
+            //                             }
+            //                         })
+            //                     }
+            //                 });
+            //             }
+            //         }
+            //     })
+
+            //     //  文章列表的筛选
+            //     $('#btnSearch').on('click', function (e) {
+            //         e.preventDefault()
+            //         $.ajax({
+            //             url: BigNew.article_query,
+            //             data: {
+            //                 type: $('#selCategory').val().trim(),//文章id
+            //                 state: $('#selStatus').val().trim(),// 文章状态
+            //                 page: 1,
+            //                 perpage: 10
+            //             },
+            //             success: function (backData) {
+            //                 // console.log(backData)
+            //                 if (backData.code == 200) {
+            //                     var reshtml = template('art_list', backData)
+            //                     $('tbody').html(reshtml)
+
+            //                     // 重新生成总页数
+            //                     $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1)
+            //                 }
+            //             }
+            //         })
+            //     })
+
         })
-
-        // 文章搜索 显示默认的文章
-        $.ajax({
-            url:BigNew.article_query,
-            data:{
-                type:$('#selCategory').val().trim(),//文章id
-                state:$('#selStatus').val().trim(),// 文章状态
-                page:1,
-                perpage:10
-            },
-            success:function(backData){
-                // console.log(backData)
-              if(backData.code==200){
-                var reshtml = template('art_list', backData)
-                $('tbody').html(reshtml)
-              }
-            }
-        })
-
-        //  文章列表的筛选
-         $('#btnSearch').on('click',function(e){
-             e.preventDefault()
-             $.ajax({
-            url:BigNew.article_query,
-            data:{
-                type:$('#selCategory').val().trim(),//文章id
-                state:$('#selStatus').val().trim(),// 文章状态
-                page:1,
-                perpage:10
-            },
-            success:function(backData){
-                // console.log(backData)
-              if(backData.code==200){
-                var reshtml = template('art_list', backData)
-                $('tbody').html(reshtml)
-              }
-            }
-          })
-         })
-
-    })
     </script>
 </body>
 
