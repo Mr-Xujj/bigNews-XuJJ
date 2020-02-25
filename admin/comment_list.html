@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="css/iconfont.css">
   <link rel="stylesheet" href="css/main.css">
   <script src="./libs/jquery-1.12.4.min.js"></script>
+  <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+  <script src="./libs/jquery.twbsPagination.js"></script>
   <script src="./libs/template-web.js"></script>
 </head>
 
@@ -142,7 +144,7 @@
         </tbody>
       </table>
       <div class="row text-center">
-        <ul class="pagination pagination-sm">
+        <!-- <ul class="pagination pagination-sm">
           <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
           <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
           <li class="page-item active"><a href="#" class="page-link">1</a></li>
@@ -154,7 +156,7 @@
           <li class="page-item"><a href="#" class="page-link">7</a></li>
           <li class="page-item next"><a href="#" class="page-link">下一页</a></li>
           <li class="page-item last"><a href="#" class="page-link">尾页</a></li>
-        </ul>
+        </ul> -->
         <ul id="pagination" class="pagination-sm"></ul>
       </div>
 
@@ -190,23 +192,48 @@
   <script src="./libs/http.js"></script>
   <script>
     $(function () {
-      getDataCom(1)
-      function getDataCom(page){
+      var mypage = 1
+      getDataCom(mypage)
+      function getDataCom(page,callback) {
         $.ajax({
-        url: BigNew.comment_list,
-        data: {
+          url: BigNew.comment_list,
+          data: {
+            page: page,
+            perpage: 2,
+          },
+          success: function (backData) {
+            console.log(backData)
+            if (backData.code == 200) {
+              var reshtml = template('com_list_temp', backData)
+              $('tbody').html(reshtml)
 
-          page: page,
-          perpage: 7,
-        },
-        success: function (backData) {
-          console.log(backData)
-          if (backData.code == 200) {
-            var reshtml = template('com_list_temp', backData)
-            $('tbody').html(reshtml)
+              if(backData.data.data.length != 0 &&callback!=null){
+                callback(backData)
+              }else if(backData.data.data.length == 0 && backData.data.totalPage == mypage-1){
+                mypage-=1
+                 getDataCom(mypage,function(){
+
+                   $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, mypage)
+                 })
+
+              }
+
+              // 分页插件
+              $('#pagination').twbsPagination({
+                totalPages: backData.data.totalPage,
+                visiblePages: 7,
+                first: '首页',
+                prev: '上一页',
+                next: '下一页',
+                last: '尾页',
+                onPageClick: function (event, page) {
+                  mypage = page
+                  getDataCom(page,null)
+                }
+              });
+            }
           }
-        }
-      });
+        });
       }
 
       // 评论通过
@@ -218,11 +245,11 @@
             id: id
           },
           type: 'post',
-          success:function(backData){
+          success: function (backData) {
             // console.log(backData)
-            if(backData.code==200){
+            if (backData.code == 200) {
               alert('评论通过')
-              getDataCom(1)
+              getDataCom(mypage,null)
             }
           }
         })
@@ -236,11 +263,11 @@
             id: id
           },
           type: 'post',
-          success:function(backData){
+          success: function (backData) {
             // console.log(backData)
-            if(backData.code==200){
+            if (backData.code == 200) {
               alert('评论拒绝')
-              getDataCom(1)
+              getDataCom(mypage,null)
             }
           }
         })
@@ -255,11 +282,13 @@
             id: id
           },
           type: 'post',
-          success:function(backData){
+          success: function (backData) {
             // console.log(backData)
-            if(backData.code==200){
+            if (backData.code == 200) {
               alert('删除评论成功')
-              getDataCom(1)
+              getDataCom(mypage,function(backData){
+                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, mypage)
+              })
             }
           }
         })
