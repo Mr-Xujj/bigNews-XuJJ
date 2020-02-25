@@ -241,7 +241,7 @@
                         id: id
                     },
                     success: function (backData) {
-                        console.log(backData);
+                        // console.log(backData);
                         if (backData.code == 200) {
                               //3.把文章信息显示在页面对应的标签上
                             $('.article_title').text(backData.data.title); //文章标题
@@ -262,7 +262,7 @@
                 });
 
                 // 二:根据文章id获取到该文章下所有的评论,显示在页面上
-                getComment();
+             getComment();
             function getComment() {
                 $.ajax({
                     url: 'http://localhost:8080/api/v1/index/get_comment',
@@ -305,7 +305,7 @@
                         articleId: id
                     },
                     success: function (backData) {
-                        console.log(backData);
+                        // console.log(backData);
                         if (backData.code == 201) {
                             alert('评论发表成功!');
                             $('.comment_name').val("");
